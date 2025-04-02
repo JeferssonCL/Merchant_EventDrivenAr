@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQMessaging.Extensions;
 using InventoryService.Api.Controllers;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 Env.Load("../../../.env");
@@ -42,6 +43,9 @@ builder.Services.AddDbContext<DbContext, InventoryDbContext>(options =>
             b => b.MigrationsAssembly("InventoryService.Api"))
         .LogTo(Console.WriteLine, LogLevel.Information)
 );
+
+var redisConnectionString = "redis:6379";
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 
 builder.Services
        .AddControllers(options =>

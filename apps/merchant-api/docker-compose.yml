@@ -49,6 +49,21 @@ services:
     networks:
       - merchant-network
 
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - merchant-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+  
+  
+  
   api_gateway:
     build:
       context: ./ApiGateway

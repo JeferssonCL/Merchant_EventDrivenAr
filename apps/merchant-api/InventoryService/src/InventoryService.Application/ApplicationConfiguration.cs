@@ -7,6 +7,8 @@ using InventoryService.Application.Dtos.Products;
 using InventoryService.Application.Dtos.ProductVariants;
 using InventoryService.Application.Dtos.Variants;
 using InventoryService.Application.Services;
+using InventoryService.Application.Services.CacheService.Concretes;
+using InventoryService.Application.Services.CacheService.Interfaces;
 using InventoryService.Application.Validators.Categories;
 using InventoryService.Application.Validators.Images;
 using InventoryService.Application.Validators.Products;
@@ -44,6 +46,7 @@ public static class ApplicationConfiguration
         services.AddTransient<ProductFiltersManager>();
         services.AddTransient<StockThresholdNoticationService>();
         services.AddScoped<IResponseHandlingHelper, ResponseHandlingHelper>();
+        services.AddSingleton<IRedisCacheService, RedisCacheService>();
         
         services.AddScoped<IValidator<CreateCategoryDto>, CreateCategoryValidator>();
         services.AddScoped<IValidator<UpdateCategoryDto>, UpdateCategoryValidator>();

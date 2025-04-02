@@ -6,9 +6,11 @@ using InventoryService.Application.Dtos.Products;
 using InventoryService.Application.Dtos.ProductVariants;
 using InventoryService.Application.QueryCommands.Products.Commands.Commands;
 using InventoryService.Application.Services;
+using InventoryService.Application.Services.CacheService.Interfaces;
 using InventoryService.Domain.Concretes;
 using InventoryService.Intraestructure.Repositories.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryService.Application.QueryCommands.Products.Commands.CommandHandlers;
 
@@ -17,8 +19,10 @@ public class CreateProductCommandHandler(
     IProductRepository productRepository,
     IRepository<Category> categoryRepository,
     IRepository<Image> imageRepository,
-    ProductVariantService productVariantService, 
-    IResponseHandlingHelper responseHandlingHelper) :
+    ProductVariantService productVariantService,
+    IResponseHandlingHelper responseHandlingHelper,
+    IRedisCacheService cacheService, 
+    ILogger<ProductService> logger) :
     IRequestHandler<CreateProductCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(CreateProductCommand request,
@@ -49,6 +53,8 @@ public class CreateProductCommandHandler(
             Categories = categories,
             LowStockThreshold = productDto.LowStockThreshold
         });
+        
+        await cacheService.RemoveAsync("Products");
 
         foreach (var imageDto in productDto.Images)
         {
@@ -69,6 +75,6 @@ public class CreateProductCommandHandler(
             await productVariantService.CreateProductVariant(createProductVariantDto, productToAdd.Id);
         }
 
-        return responseHandlingHelper.Created("The product was added successfully.", productToAdd.Id);
+        return responseHandlingHelper.Created($"The product was added successfully.", productToAdd.Id);
     }
 }

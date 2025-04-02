@@ -11,9 +11,11 @@ using InventoryService.Application.Dtos.Products;
 using InventoryService.Application.Dtos.ProductVariants;
 using InventoryService.Application.QueryCommands.Products.Commands.Commands;
 using InventoryService.Application.Services;
+using InventoryService.Application.Services.CacheService.Interfaces;
 using InventoryService.Domain.Concretes;
 using InventoryService.Intraestructure.Repositories.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryService.Application.QueryCommands.Products.Commands.CommandHandlers;
 
@@ -25,7 +27,9 @@ public class UpdateProductCommandHandler(
     IRepository<ProductVariant> productVariantRepository,
     ProductVariantService productVariantService, 
     IResponseHandlingHelper responseHandlingHelper,
-    IMapper mapper
+    IMapper mapper,
+    IRedisCacheService cacheService, 
+    ILogger<ProductService> logger
     ) : 
     IRequestHandler<UpdateProductCommand, BaseResponse>
 {
@@ -57,6 +61,8 @@ public class UpdateProductCommandHandler(
         previousStatusProduct.Categories = categories;
         
         await productRepository.UpdateAsync(previousStatusProduct);
+        await cacheService.RemoveAsync("Products");
+        await cacheService.RemoveAsync($"Product_{request.Id}");
 
         bool imagesUpdate = await HandleImagesUpdate(
             request.Id,

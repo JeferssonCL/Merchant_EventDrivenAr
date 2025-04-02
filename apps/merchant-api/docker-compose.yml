@@ -108,6 +108,18 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_DEVICE_NAME: "StripeCLI-Dev"
+    entrypoint: [ "stripe", "listen", "--api-key", "${STRIPE_SECRET_KEY}", "--forward-to", "${STRIPE_ENDPOINT_WEBHOOK}" ]
+    restart: unless-stopped
+    networks:
+      - merchant-network
+
+
   user_service:
     build:
       context: .
@@ -148,6 +160,19 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+        
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - merchant-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
 
 networks:
   merchant-network:
